@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RepositoryStatus {
+  PENDING
+  INDEXING
+  COMPLETED
+  FAILED
+}
+  
+
+model Repository{
+  id            String           @id @default(cuid())
+  url           String
+  owner         String
+  name          String
+  defaultBranch String
+  status        RepositoryStatus @default(PENDING)
+  
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  chunks        Chunk[]
+
+  @@unique([owner,name])
+}
+
+model Chunk{
+  id            String   @id @default(cuid())
+
+  repoId        String
+  repository    Repository @relation(fields:[repoId],references:[id])
+
+  content       String
+  filePath      String
+
+  chunkIndex    Int
+  tokenCount    Int
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+}
