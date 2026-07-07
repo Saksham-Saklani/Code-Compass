@@ -73,4 +73,19 @@ async function getRepoTree(owner: string, repo: string, branch: string): Promise
     }));
 }
 
-export { extractRepoInfo, getRepoInfo, getRepoTree }
+
+async function downloadBlob(owner: string, repo: string, file: GitHubTreeEntry) {
+    const response = await octokit.request('GET /repos/{owner}/{repo}/git/blobs/{file_sha}', {
+        owner,
+        repo,
+        file_sha: file.sha
+    });
+
+    if (response.data.encoding === 'base64') {
+        return Buffer.from(response.data.content, 'base64').toString('utf-8');
+    }
+
+    return response.data.content;
+}
+
+export { extractRepoInfo, getRepoInfo, getRepoTree, downloadBlob }
