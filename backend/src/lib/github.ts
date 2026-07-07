@@ -7,7 +7,13 @@ const octokit = new Octokit()
 interface RepoInfo{
     owner: string,
     repoName: string
-    }
+}
+
+export type GitHubTreeEntry = {
+    path: string;
+    sha: string;
+    type: "blob" | "tree";
+};
 
 // extract repo info from github repo url
 
@@ -51,5 +57,20 @@ async function getRepoInfo(info:RepoInfo){
     return repoDetails.data
     
 }
+// get repo tree from github API
+async function getRepoTree(owner: string, repo: string, branch: string): Promise<GitHubTreeEntry[]> {
+    const response = await octokit.request('GET /repos/{owner}/{repo}/git/trees/{tree_sha}', {
+        owner,
+        repo,
+        tree_sha: branch,
+        recursive: '1'
+    });
 
-export { extractRepoInfo, getRepoInfo }
+    return response.data.tree.map((file: any) => ({
+        path: file.path,
+        sha: file.sha,
+        type: file.type as "blob" | "tree"
+    }));
+}
+
+export { extractRepoInfo, getRepoInfo, getRepoTree }
