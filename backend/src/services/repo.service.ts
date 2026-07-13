@@ -1,8 +1,10 @@
-import { extractRepoInfo, getRepoInfo } from "../lib/github.js";
+import { extractRepoInfo, getRepoInfo, getRepoTree, downloadBlob } from "../lib/github.js";
+import { filterFiles } from "../lib/fileFilter.js";
+import { generateChunks } from "../lib/chunker.js";
+import { embedText } from "../lib/embedding.js";
 import prisma from "../lib/prisma.js";
 
 // save repository in database
-
 async function createRepository(URL: string) {
     const { owner, repoName } = extractRepoInfo(URL);
 
@@ -32,4 +34,87 @@ async function createRepository(URL: string) {
     return repository;
 }
 
-export { createRepository }
+
+
+// process repository: fetch, filter, chunk, embed, and save chunks into database
+async function saveChunks(repoId: string) {
+
+    const repository = await prisma.repository.findFirst({
+        where: {
+            id: repoId
+        }
+    });
+    
+    if(!repository){
+        throw new Error("Repository not found");
+    }
+
+    const { owner, defaultBranch } = repository;
+    const repoName = repository.name
+
+    console.log(`Fetching repository tree for ${owner}/${repoName}...`);
+    const tree = await getRepoTree(owner, repoName, defaultBranch);
+
+    console.log("Filtering files...");
+    const filteredTree = filterFiles(tree);
+    console.log(`Filtered down to ${filteredTree.length} files to process.`);
+    
+    // Testing only: limit to 3 files to avoid OOM
+    const filesToProcess = filteredTree.slice(0, 3);
+    
+    let allChunks = [];
+
+    for (const file of filesToProcess) {
+        try {
+            console.log(`Processing file: ${file.path}`);
+            const content = await downloadBlob(owner, repoName, file);
+            
+            const chunks = generateChunks(content);
+            
+            for (const chunk of chunks) {
+                // Generate embedding for the chunk
+                // const embedding = await embedText(chunk.content);
+                
+                allChunks.push({
+                    repoId,
+                    content: chunk.content,
+                    filePath: file.path || '',
+                    chunkIndex: chunk.chunkIndex,
+                    tokenCount: chunk.tokenCount,
+                    // Note: embedding is calculated but not saved here yet because the Prisma 
+                    // schema does not currently have an 'embedding' column in the Chunk model.
+                });
+            }
+        } catch (error) {
+            console.error(`Error processing file ${file.path}:`, error);
+        }
+    }
+
+    if (allChunks.length === 0) {
+        console.log("No chunks generated. Skipping database insertion.");
+        return { count: 0 };
+    }
+
+    // Save all processed chunks to database
+    const result = await prisma.chunk.createMany({
+        data: allChunks.map(c => ({
+            repoId: c.repoId,
+            content: c.content,
+            filePath: c.filePath,
+            chunkIndex: c.chunkIndex,
+            tokenCount: c.tokenCount
+        }))
+    });
+
+    console.log(`Successfully saved ${result.count} chunks for repo ${repoId}`);
+    
+    // Optionally update repo status to COMPLETED here
+    await prisma.repository.update({
+        where: { id: repoId },
+        data: { status: "INDEXING" }
+    });
+
+    return result;
+}
+
+export { createRepository, saveChunks }
