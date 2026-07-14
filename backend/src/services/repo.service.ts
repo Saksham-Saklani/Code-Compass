@@ -60,11 +60,11 @@ async function saveChunks(repoId: string) {
     console.log(`Filtered down to ${filteredTree.length} files to process.`);
     
     // Testing only: limit to 3 files to avoid OOM
-    const filesToProcess = filteredTree.slice(0, 3);
+    // const filesToProcess = filteredTree.slice(4, 8);
     
     let allChunks = [];
 
-    for (const file of filesToProcess) {
+    for (const file of filteredTree) {
         try {
             console.log(`Processing file: ${file.path}`);
             const content = await downloadBlob(owner, repoName, file);

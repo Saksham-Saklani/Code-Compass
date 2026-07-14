@@ -21,7 +21,7 @@ enum RepositoryStatus {
   
 
 model Repository{
-  id            String           @id @default(cuid())
+  id            String           @id @default(uuid())
   url           String
   owner         String
   name          String
@@ -37,7 +37,7 @@ model Repository{
 }
 
 model Chunk{
-  id            String   @id @default(cuid())
+  id            String   @id @default(uuid())
 
   repoId        String
   repository    Repository @relation(fields:[repoId],references:[id])
