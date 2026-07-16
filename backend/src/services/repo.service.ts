@@ -113,18 +113,11 @@ async function saveChunks(repoId: string) {
   });
 
   console.log(`Successfully saved ${result.count} chunks for repo ${repoId}`);
-
-  // Optionally update repo status to COMPLETED here
-  await prisma.repository.update({
-    where: { id: repoId },
-    data: { status: "INDEXING" },
-  });
-
+ 
   return result;
 }
 
 // semantic search
-
 async function searchRepository(
   repoId: string,
   query: string,

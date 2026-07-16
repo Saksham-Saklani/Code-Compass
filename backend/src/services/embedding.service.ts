@@ -3,6 +3,7 @@ import prisma from "../lib/prisma.js";
 import { qdrant } from "../lib/qdrant.js";
 
 
+
 // create embeddings of chunks content and save into qdrant collection
 
 export async function saveEmbeddings(repoId: string) {
@@ -34,4 +35,5 @@ export async function saveEmbeddings(repoId: string) {
       points,
     });
   }
+  
 }

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { createRepository, saveChunks } from "../services/repo.service.js";
 import prisma from "../lib/prisma.js";
+import { indexingQueue } from "../queue/indexing.queue.js";
 
 async function createRepositoryController(req: Request, res: Response) {
   try {
@@ -29,11 +30,13 @@ async function indexingController(req: Request,res: Response){
         if (!id || typeof id !== 'string') {
             return res.status(400).json({ message: "Invalid repository ID" });
         }
-        const chunks = await saveChunks(id); 
+        const result = await indexingQueue.add('repo-job',{
+          repoId: id,
+        })
     
     return res
-        .status(200)
-        .json({ message: "Repository indexed successfully", chunks });
+        .status(202)
+        .json({ message: "Indexing job added to queue successfully" });
     } catch (error) {
         if(error instanceof Error){
             if(error.message === "Repository not found"){
