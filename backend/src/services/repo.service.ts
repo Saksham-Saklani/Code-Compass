@@ -9,6 +9,8 @@ import { generateChunks } from "../lib/chunker.js";
 import { embedText } from "../lib/embedding.js";
 import prisma from "../lib/prisma.js";
 import { qdrant } from "../lib/qdrant.js";
+import { generateAnswer } from "../lib/gemini.js";
+import type { Context } from "../lib/gemini.js";
 
 // save repository in database
 async function createRepository(URL: string) {
@@ -113,11 +115,11 @@ async function saveChunks(repoId: string) {
   });
 
   console.log(`Successfully saved ${result.count} chunks for repo ${repoId}`);
- 
+
   return result;
 }
 
-// semantic search
+// semantic search and rag pipeline
 async function searchRepository(
   repoId: string,
   query: string,
@@ -142,12 +144,31 @@ async function searchRepository(
     limit,
   });
 
-  // 3. Return top K results (chunk IDs + scores)
-  return searchResults.map((result) => ({
-    chunkId: result.id,
-    score: result.score,
-    filePath: result.payload?.filePath,
-  }));
+  // 3. Get chunk content from postgres
+  const chunkIds = searchResults.map((result) => String(result.id));
+  const chunks = await prisma.chunk.findMany({
+    where: {
+      id: {
+        in: chunkIds,
+      },
+    },
+  });
+
+  // 4. store top K results (chunk IDs + scores + content)
+  const context: Context[] = searchResults.map((result) => {
+    const chunk = chunks.find((c) => c.id === String(result.id));
+    return {
+      chunkId: String(result.id),
+      score: result.score,
+      filePath: String(result.payload?.filePath),
+      content: chunk?.content || "",
+    };
+  });
+
+  // 5. send chunks and query to gemini
+  const answer = await generateAnswer({ query: query, chunks: context });
+
+  return answer;
 }
 
 export { createRepository, saveChunks, searchRepository };
