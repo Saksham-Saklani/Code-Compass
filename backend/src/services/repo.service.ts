@@ -119,13 +119,13 @@ async function saveChunks(repoId: string) {
   return result;
 }
 
-// semantic search and rag pipeline
-async function searchRepository(
+// semantic search
+async function retrieveChunks(
   repoId: string,
   query: string,
   limit: number = 5,
 ) {
-  // 1. Embed the user query
+      // 1. Embed the user query
   const queryVector = await embedText(query);
 
   // 2. Search Qdrant, filtering by the specific repository
@@ -143,6 +143,10 @@ async function searchRepository(
     },
     limit,
   });
+
+  if(searchResults.length === 0){
+    return [];
+  }
 
   // 3. Get chunk content from postgres
   const chunkIds = searchResults.map((result) => String(result.id));
@@ -165,10 +169,12 @@ async function searchRepository(
     };
   });
 
-  // 5. send chunks and query to gemini
-  const answer = await generateAnswer({ query: query, chunks: context });
+  console.log(context)
 
-  return answer;
+  return context;
 }
 
-export { createRepository, saveChunks, searchRepository };
+
+
+
+export { createRepository, saveChunks, retrieveChunks };
