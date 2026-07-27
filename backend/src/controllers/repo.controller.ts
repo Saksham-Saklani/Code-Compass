@@ -51,4 +51,33 @@ async function indexingController(req: Request,res: Response){
     }
 }
 
-export { createRepositoryController, indexingController };
+async function getRepositoriesController(req: Request, res: Response) {
+  try {
+    const repositories = await prisma.repository.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return res.status(200).json(repositories);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch repositories", error });
+  }
+}
+
+async function getRepositoryByIdController(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ message: "Invalid repository ID" });
+    }
+    const repository = await prisma.repository.findFirst({
+      where: { id },
+    });
+    if (!repository) {
+      return res.status(404).json({ message: "Repository not found" });
+    }
+    return res.status(200).json(repository);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch repository", error });
+  }
+}
+
+export { createRepositoryController, indexingController, getRepositoriesController, getRepositoryByIdController };
