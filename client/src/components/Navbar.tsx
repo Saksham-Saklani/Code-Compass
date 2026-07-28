@@ -5,7 +5,7 @@ import React from "react";
 
 export default function Navbar() {
   return (
-    <nav className="w-full bg-[#0a0a0a] text-[#33ff00] font-mono border-b border-[#1f521f] select-none relative z-50">
+    <nav className="w-full bg-[#000000] text-[#33ff00] font-mono border-b border-[#1f521f] select-none relative z-50">
       <div className="w-full px-30 h-20 flex items-center justify-between relative">
         
         {/* START: logo / prompt */}
