@@ -7,7 +7,7 @@ const Spline = dynamic(() => import("@splinetool/react-spline"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center text-[#33ff00]/50 animate-pulse text-sm">
-      [ INITIALIZING 3D VECTOR FIELD... ]
+      [ Loading... ]
     </div>
   ),
 });
@@ -56,12 +56,12 @@ export default function Hero() {
     };
   }, []);
   return (
-    <section className="relative w-full bg-[#0E0D0E] text-[#33ff00] font-mono py-12 md:py-24 px-6 md:px-12 lg:px-24 flex flex-col justify-center select-none min-h-[calc(100vh-64px)] overflow-hidden mb-50">
+    <section className="relative w-full bg-[#0E0D0E] text-[#33ff00] font-mono py-12 md:py-24 px-6 md:px-12 lg:px-24 flex flex-col justify-center select-none min-h-[calc(100vh-64px)] overflow-hidden">
       {/* Background Spline 3D Scene - Positioned on the right side */}
-      <div 
+      <div
         className={`absolute top-0 right-10 h-full w-full lg:w-[60%] z-10 pointer-events-none flex items-center justify-center transition-all duration-1000 ease-out transform ${
-          hasScrolled 
-            ? "opacity-0 translate-y-8 scale-95" 
+          hasScrolled
+            ? "opacity-0 translate-y-8 scale-95"
             : "opacity-100 translate-y-0 scale-100"
         }`}
       >
@@ -90,9 +90,8 @@ export default function Hero() {
           {/* Description Pane (with vertical indicator line) */}
           <div className="border-l-2 border-[#33ff00] pl-6 py-1">
             <p className="text-lg sm:text-xl md:text-2xl text-[#33ff00]/85 leading-relaxed tracking-wide">
-              Stop searching through hundreds of files.
-              Ask questions and get AI-powered
-              answers backed by your source code.
+              Stop searching through hundreds of files. Ask questions and get
+              AI-powered answers backed by your source code.
             </p>
           </div>
 

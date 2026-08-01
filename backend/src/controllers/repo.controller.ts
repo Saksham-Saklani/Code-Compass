@@ -54,6 +54,11 @@ async function indexingController(req: Request,res: Response){
 async function getRepositoriesController(req: Request, res: Response) {
   try {
     const repositories = await prisma.repository.findMany({
+      include: {
+        _count: {
+          select: { chunks: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     return res.status(200).json(repositories);
@@ -70,6 +75,11 @@ async function getRepositoryByIdController(req: Request, res: Response) {
     }
     const repository = await prisma.repository.findFirst({
       where: { id },
+      include: {
+        _count: {
+          select: { chunks: true },
+        },
+      },
     });
     if (!repository) {
       return res.status(404).json({ message: "Repository not found" });
