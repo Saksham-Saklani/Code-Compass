@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BackgroundAnimation from "../../src/components/BackgroundAnimation";
-import AddRepoBar from "../../src/components/AddRepoBar";
-import RepositoryCard from "../../src/components/RepositoryCard";
+import AddRepoBar from "./components/AddRepoBar";
+import RepositoryCard from "./components/RepositoryCard";
 
 interface Repository {
   id: string;
@@ -41,12 +41,18 @@ export default function DashboardPage() {
   // Fetch repositories from DB
   const fetchRepositories = async () => {
     try {
-      const { data } = await axios.get<Repository[]>(`${API_BASE}/api/repository`);
+      const { data } = await axios.get<Repository[]>(
+        `${API_BASE}/api/repository`,
+      );
       setRepositories(data);
       setError(null);
     } catch (err: any) {
       console.error("Failed to fetch repositories:", err);
-      setError(err.response?.data?.message || err.message || "Failed to connect to backend database");
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to connect to backend database",
+      );
     } finally {
       setLoading(false);
     }
@@ -135,7 +141,10 @@ export default function DashboardPage() {
     } catch (err: any) {
       console.error("Add repository error:", err);
       setFormMessage({
-        text: err.response?.data?.message || err.message || "Failed to add repository",
+        text:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to add repository",
         type: "error",
       });
     } finally {
@@ -169,7 +178,8 @@ export default function DashboardPage() {
       {/* Error Banner */}
       {error && (
         <div className="max-w-3xl mx-auto border border-red-900 bg-red-950/20 text-red-400 rounded-xl p-4 text-xs">
-          &gt; Connection error: {error}. Check if backend is running on {API_BASE}.
+          &gt; Connection error: {error}. Check if backend is running on{" "}
+          {API_BASE}.
         </div>
       )}
 
@@ -192,14 +202,12 @@ export default function DashboardPage() {
             {repositories.map((repo) => {
               const isCompleted = repo.status === "COMPLETED";
               const isFailed = repo.status === "FAILED";
-              const progress = isCompleted ? 100 : progressMap[repo.id] || (isFailed ? 0 : 45);
+              const progress = isCompleted
+                ? 100
+                : progressMap[repo.id] || (isFailed ? 0 : 45);
 
               return (
-                <RepositoryCard
-                  key={repo.id}
-                  repo={repo}
-                  progress={progress}
-                />
+                <RepositoryCard key={repo.id} repo={repo} progress={progress} />
               );
             })}
           </div>

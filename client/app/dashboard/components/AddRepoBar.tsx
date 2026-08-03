@@ -20,7 +20,7 @@ export default function AddRepoBar({
   return (
     <div className="max-w-7xl mx-auto w-full space-y-3 mb-30 pt-10">
       <form onSubmit={onSubmit} className="relative w-full p-[1.5px] rounded-full overflow-hidden bg-white/[0.03] backdrop-blur-xl border border-white/5 shadow-2xl">
-        {/* Large Rotating Gradient Layer to prevent corner clipping */}
+        {/* Large Rotating Gradient Layer */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[1500%] -z-10 bg-[conic-gradient(from_0deg,#33ff00_15%,transparent_40%)] animate-[spin_3s_linear_infinite] pointer-events-none" />
         
         <div className="w-full bg-[#0e0d0e]/95 rounded-full p-2 pl-6 flex items-center shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.5)] relative z-10">
