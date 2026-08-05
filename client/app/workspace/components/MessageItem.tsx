@@ -74,7 +74,12 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ msg }) => {
               Referenced Files:
             </div>
             <div className="flex flex-wrap gap-2">
-              {msg.sources.map((src, sIdx) => (
+              {msg.sources
+                .filter(
+                  (src, index, self) =>
+                    index === self.findIndex((t) => t.path === src.path)
+                )
+                .map((src, sIdx) => (
                 <div
                   key={sIdx}
                   className="text-[10px] border border-[#1f521f] bg-[#1e1f20]/50 px-2 py-0.5 rounded text-[#33ff00]/70 flex items-center gap-1.5 max-w-xs truncate"

@@ -23,7 +23,7 @@ export const WorkspaceInput: React.FC<WorkspaceInputProps> = memo(({
   return (
     <form
       onSubmit={onSubmit}
-      className="relative w-full flex items-center rounded-full bg-[#1e1f20] hover:bg-[#202124] focus-within:bg-[#202124] focus-within:shadow-[0_0_12px_rgba(51,255,0,0.06)] px-6 py-6 transition-all duration-300"
+      className="relative w-full flex items-center rounded-full bg-[#1e1f20] hover:bg-[#202124] focus-within:bg-[#202124] focus-within:shadow-[0_0_12px_rgba(51,255,0,0.06)] px-6 py-4 transition-all duration-300"
     >
       {/* Middle: Input field */}
       <input
@@ -38,7 +38,7 @@ export const WorkspaceInput: React.FC<WorkspaceInputProps> = memo(({
               ? ` Indexing: ${selectedRepo.status}...`
               : "Ask anything about this repository..."
         }
-        className="flex-1 bg-transparent text-[#e3e3e3] placeholder-[#c4c7c5]/50 outline-none text-[20px] font-sans font-normal disabled:cursor-not-allowed pr-4"
+        className="flex-1 bg-transparent text-[#e3e3e3] placeholder-[#c4c7c5]/50 outline-none text-[14px] font-sans font-normal disabled:cursor-not-allowed pr-4"
       />
 
       {/* Right Side: Send Trigger / Stop Button */}

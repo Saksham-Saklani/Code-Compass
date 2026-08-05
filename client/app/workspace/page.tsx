@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  Suspense,
+  useCallback,
+} from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PiCompassRoseFill } from "react-icons/pi";
 import axios from "axios";
@@ -36,7 +42,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 const getTimestamp = () => {
   const now = new Date();
-  return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
 function WorkspaceContent() {
@@ -63,14 +69,17 @@ function WorkspaceContent() {
   // Fetch repositories
   const fetchRepositories = async (selectIdAfterFetch?: string) => {
     try {
-      const { data } = await axios.get<Repository[]>(`${API_BASE}/api/repository`);
+      const { data } = await axios.get<Repository[]>(
+        `${API_BASE}/api/repository`,
+      );
       setRepositories(data);
       setError(null);
 
       const completedRepos = data.filter((r) => r.status === "COMPLETED");
       if (completedRepos.length > 0) {
-        let targetId = selectIdAfterFetch || selectedRepoId || completedRepos[0].id;
-        
+        let targetId =
+          selectIdAfterFetch || selectedRepoId || completedRepos[0].id;
+
         if (repoIdParam && completedRepos.some((r) => r.id === repoIdParam)) {
           targetId = repoIdParam;
         } else if (!completedRepos.some((r) => r.id === targetId)) {
@@ -78,7 +87,8 @@ function WorkspaceContent() {
         }
 
         setSelectedRepoId(targetId);
-        const repoObj = completedRepos.find((r) => r.id === targetId) || completedRepos[0];
+        const repoObj =
+          completedRepos.find((r) => r.id === targetId) || completedRepos[0];
         setSelectedRepo(repoObj);
       } else {
         setSelectedRepoId("");
@@ -89,7 +99,7 @@ function WorkspaceContent() {
       setError(
         err.response?.data?.message ||
           err.message ||
-          "Failed to establish connection to database server."
+          "Failed to establish connection to database server.",
       );
     } finally {
       setLoadingRepos(false);
@@ -101,34 +111,44 @@ function WorkspaceContent() {
   }, [repoIdParam]);
 
   // Handles target repository switching (memoized)
-  const handleRepoChange = useCallback((id: string) => {
-    setSelectedRepoId(id);
-    const repoObj = repositories.find((r) => r.id === id) || null;
-    setSelectedRepo(repoObj);
+  const handleRepoChange = useCallback(
+    (id: string) => {
+      setSelectedRepoId(id);
+      const repoObj = repositories.find((r) => r.id === id) || null;
+      setSelectedRepo(repoObj);
 
-    if (id) {
-      router.push(`/workspace?repoId=${id}`, { scroll: false });
-    } else {
-      router.push("/workspace", { scroll: false });
-    }
+      if (id) {
+        router.push(`/workspace?repoId=${id}`, { scroll: false });
+      } else {
+        router.push("/workspace", { scroll: false });
+      }
 
-    setMessages([]);
-    setChatError(null);
-  }, [repositories, router]);
+      setMessages([]);
+      setChatError(null);
+    },
+    [repositories, router],
+  );
 
   // Poll repository status if indexing
   useEffect(() => {
     if (!selectedRepo) return;
-    
-    const needsPolling = selectedRepo.status === "PENDING" || selectedRepo.status === "INDEXING";
+
+    const needsPolling =
+      selectedRepo.status === "PENDING" || selectedRepo.status === "INDEXING";
     if (!needsPolling) return;
 
     const interval = setInterval(async () => {
       try {
-        const { data } = await axios.get<Repository>(`${API_BASE}/api/repository/${selectedRepo.id}`);
-        
+        const { data } = await axios.get<Repository>(
+          `${API_BASE}/api/repository/${selectedRepo.id}`,
+        );
+
         setRepositories((prev) =>
-          prev.map((r) => (r.id === data.id ? { ...r, status: data.status, _count: data._count } : r))
+          prev.map((r) =>
+            r.id === data.id
+              ? { ...r, status: data.status, _count: data._count }
+              : r,
+          ),
         );
 
         if (data.id === selectedRepoId) {
@@ -147,77 +167,86 @@ function WorkspaceContent() {
   }, [messages, sending]);
 
   // Handles query submissions (memoized)
-  const handleSubmitQuery = useCallback(async (e?: React.FormEvent, customQuery?: string) => {
-    if (e) e.preventDefault();
-    
-    const query = customQuery || inputQuery;
-    if (!query.trim() || !selectedRepo || selectedRepo.status !== "COMPLETED" || sending) return;
+  const handleSubmitQuery = useCallback(
+    async (e?: React.FormEvent, customQuery?: string) => {
+      if (e) e.preventDefault();
 
-    const userMsg: Message = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      text: query.trim(),
-      timestamp: getTimestamp(),
-    };
+      const query = customQuery || inputQuery;
+      if (
+        !query.trim() ||
+        !selectedRepo ||
+        selectedRepo.status !== "COMPLETED" ||
+        sending
+      )
+        return;
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInputQuery("");
-    setSending(true);
-    setChatError(null);
-    setLoadingStep(0);
-
-    const stepInterval = setInterval(() => {
-      setLoadingStep((prev) => {
-        if (prev < 2) return prev + 1;
-        clearInterval(stepInterval);
-        return prev;
-      });
-    }, 2000);
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      const response = await axios.post(
-        `${API_BASE}/api/chat/repository/${selectedRepo.id}`,
-        { query: query.trim() },
-        { signal: controller.signal }
-      );
-
-      const aiMsg: Message = {
-        id: `ai-${Date.now()}`,
-        role: "assistant",
-        text: response.data.answer,
-        sources: response.data.sources,
+      const userMsg: Message = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        text: query.trim(),
         timestamp: getTimestamp(),
       };
 
-      setMessages((prev) => [...prev, aiMsg]);
-    } catch (err: any) {
-      if (axios.isCancel(err)) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `system-cancelled-${Date.now()}`,
-            role: "system",
-            text: "ANALYSIS SHUT DOWN. GENERATION CANCELLED BY USER.",
-            timestamp: getTimestamp(),
-          },
-        ]);
-        return;
+      setMessages((prev) => [...prev, userMsg]);
+      setInputQuery("");
+      setSending(true);
+      setChatError(null);
+      setLoadingStep(0);
+
+      const stepInterval = setInterval(() => {
+        setLoadingStep((prev) => {
+          if (prev < 2) return prev + 1;
+          clearInterval(stepInterval);
+          return prev;
+        });
+      }, 2000);
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      try {
+        const response = await axios.post(
+          `${API_BASE}/api/chat/repository/${selectedRepo.id}`,
+          { query: query.trim() },
+          { signal: controller.signal },
+        );
+
+        const aiMsg: Message = {
+          id: `ai-${Date.now()}`,
+          role: "assistant",
+          text: response.data.answer,
+          sources: response.data.sources,
+          timestamp: getTimestamp(),
+        };
+
+        setMessages((prev) => [...prev, aiMsg]);
+      } catch (err: any) {
+        if (axios.isCancel(err)) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `system-cancelled-${Date.now()}`,
+              role: "system",
+              text: "ANALYSIS SHUT DOWN. GENERATION CANCELLED BY USER.",
+              timestamp: getTimestamp(),
+            },
+          ]);
+          return;
+        }
+        console.error("Failed to query assistant:", err);
+        setChatError(
+          err.response?.data?.error ||
+            err.message ||
+            "Network timeout. Unable to fetch response from backend AI.",
+        );
+      } finally {
+        clearInterval(stepInterval);
+        setSending(false);
+        abortControllerRef.current = null;
       }
-      console.error("Failed to query assistant:", err);
-      setChatError(
-        err.response?.data?.error ||
-          err.message ||
-          "Network timeout. Unable to fetch response from backend AI."
-      );
-    } finally {
-      clearInterval(stepInterval);
-      setSending(false);
-      abortControllerRef.current = null;
-    }
-  }, [inputQuery, selectedRepo, sending]);
+    },
+    [inputQuery, selectedRepo, sending],
+  );
 
   const handleClearHistory = useCallback(() => {
     setMessages([]);
@@ -233,8 +262,7 @@ function WorkspaceContent() {
   }, []);
 
   return (
-    <div className="flex-1 flex h-[calc(100vh-80px)] bg-[#131314] overflow-hidden text-[#e3e3e3] font-sans relative">
-      
+    <div className="flex-1 flex h-screen bg-[#131314] overflow-hidden text-[#e3e3e3] font-sans relative pt-24">
       {/* Dynamic CSS override block to completely disable the CRT green lines overlay */}
       <style>{`
         .crt-overlay { display: none !important; }
@@ -249,8 +277,15 @@ function WorkspaceContent() {
       {/* MAIN SCREEN AREA */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#131314] relative z-10">
         
+        {/* SOFT GREEN RADIAL GLOW IN CENTER */}
+        {messages.length === 0 && (
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0">
+            <div className="w-[1000px] h-[1000px] bg-[radial-gradient(circle,rgba(51,255,0,0.18)_0%,rgba(51,255,0,0.05)_55%,transparent_75%)] rounded-full blur-[90px] animate-[pulse_12s_ease-in-out_infinite]" />
+          </div>
+        )}
+
         {/* TOP COMPONENT: Minimal Dropdown Select */}
-        <WorkspaceHeader 
+        <WorkspaceHeader
           repositories={repositories}
           selectedRepoId={selectedRepoId}
           selectedRepo={selectedRepo}
@@ -262,23 +297,16 @@ function WorkspaceContent() {
         {/* CHAT CONTAINER */}
         <div className="flex-1 overflow-hidden flex flex-col justify-between relative">
           
-          {/* SOFT GREEN RADIAL GLOW IN CENTER */}
-          {messages.length === 0 && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center -z-10">
-              <div className="w-[1000px] h-[1000px] bg-[radial-gradient(circle,rgba(51,255,0,0.18)_0%,rgba(51,255,0,0.05)_55%,transparent_75%)] rounded-full blur-[90px] animate-[pulse_12s_ease-in-out_infinite]" />
-            </div>
-          )}
-
           {/* VIEW 1: EMPTY STATE - Header & Input Form centered together */}
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col justify-center items-center px-6 w-full max-w-5xl mx-auto space-y-6 select-none relative z-10">
-              <h2 className="text-4xl md:text-[44px] font-normal tracking-tight text-[#e3e3e3] select-none font-sans leading-tight text-center">
+              <h2 className="text-2xl md:text-[30px] font-normal tracking-tight text-[#e3e3e3] select-none font-sans leading-tight text-center">
                 What should we focus on?
               </h2>
-              
+
               {/* Centered Input Form */}
               <div className="w-full">
-                <WorkspaceInput 
+                <WorkspaceInput
                   inputQuery={inputQuery}
                   setInputQuery={setInputQuery}
                   sending={sending}
@@ -310,12 +338,24 @@ function WorkspaceContent() {
                 {sending && (
                   <div className="flex justify-start items-center gap-4">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#1e1f20]/50 border border-[#1f521f]/20 text-[#33ff00] flex-shrink-0 select-none">
-                      <PiCompassRoseFill className="w-5 h-5 text-[#33ff00] animate-spin" style={{ animationDuration: '3s' }} />
+                      <PiCompassRoseFill
+                        className="w-5 h-5 text-[#33ff00] animate-spin"
+                        style={{ animationDuration: "3s" }}
+                      />
                     </div>
                     <div className="text-sm text-[#33ff00]/85 select-none flex items-center gap-2.5 py-1 font-mono">
-                      {loadingStep === 0 && <span>Searching repository...</span>}
-                      {loadingStep === 1 && <span>Retrieving relevant files...</span>}
-                      {loadingStep === 2 && <span>Generating response... <span className="animate-blink font-bold">_</span></span>}
+                      {loadingStep === 0 && (
+                        <span>Searching repository...</span>
+                      )}
+                      {loadingStep === 1 && (
+                        <span>Retrieving relevant files...</span>
+                      )}
+                      {loadingStep === 2 && (
+                        <span>
+                          Generating response...{" "}
+                          <span className="animate-blink font-bold">_</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -332,7 +372,6 @@ function WorkspaceContent() {
 
               {/* LOWER SECTION: Spaced Input pill for Active Chat */}
               <div className="w-full max-w-5xl mx-auto px-6 pb-6 relative z-10 bg-[#131314] pt-4">
-                
                 {/* Indexing alert message */}
                 {selectedRepo && selectedRepo.status !== "COMPLETED" && (
                   <div className="border border-yellow-900/40 bg-yellow-950/15 p-3.5 rounded-2xl text-center space-y-1 mb-4 select-none font-mono">
@@ -340,12 +379,13 @@ function WorkspaceContent() {
                       ⚠ Codebase indexing under process ({selectedRepo.status})
                     </div>
                     <div className="text-[10px] text-[#33ff00]/60">
-                      Chat input is temporarily offline. It will unlock automatically once completed.
+                      Chat input is temporarily offline. It will unlock
+                      automatically once completed.
                     </div>
                   </div>
                 )}
 
-                <WorkspaceInput 
+                <WorkspaceInput
                   inputQuery={inputQuery}
                   setInputQuery={setInputQuery}
                   sending={sending}
@@ -356,9 +396,7 @@ function WorkspaceContent() {
               </div>
             </>
           )}
-
         </div>
-
       </div>
 
       {/* DB link offline overlay */}

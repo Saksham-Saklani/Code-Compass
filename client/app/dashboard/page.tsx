@@ -153,14 +153,14 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="relative flex-1 text-[#33ff00] font-mono p-6 md:p-12 mx-auto w-full space-y-12 select-none">
+    <div className="relative flex-1 text-[#33ff00] font-mono pt-28 pb-12 px-6 md:px-12 mx-auto w-full space-y-12 select-none">
       {/* Background Animation & Grid */}
       <BackgroundAnimation />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mx-20">
         <div>
-          <h1 className="text-3xl font-bold tracking-wide uppercase">
+          <h1 className="text-xl font-bold tracking-wide uppercase">
             &gt; Add Repository
           </h1>
         </div>
@@ -177,28 +177,28 @@ export default function DashboardPage() {
 
       {/* Error Banner */}
       {error && (
-        <div className="max-w-3xl mx-auto border border-red-900 bg-red-950/20 text-red-400 rounded-xl p-4 text-xs">
+        <div className="max-w-3xl mx-auto border border-red-900 bg-red-950/20 text-red-400 rounded-xl p-3 text-xs">
           &gt; Connection error: {error}. Check if backend is running on{" "}
           {API_BASE}.
         </div>
       )}
 
       {/* Repositories Grid (2x3 Card Format) */}
-      <div className="space-y-8 max-w-8xl mx-20">
-        <div className="flex items-center justify-between font-bold text-3xl text-[#33ff00] border-b border-[#1f521f]/40 pb-3">
+      <div className="space-y-4 max-w-8xl mx-20">
+        <div className="flex items-center justify-between font-bold text-xl text-[#33ff00] border-b border-[#1f521f]/40 pb-2">
           <span className="uppercase">&gt; Repositories</span>
         </div>
 
         {loading ? (
-          <div className="py-24 text-center text-sm text-[#33ff00]/40">
+          <div className="py-12 text-center text-xs text-[#33ff00]/40">
             [ Loading repositories from database... ]
           </div>
         ) : repositories.length === 0 ? (
-          <div className="py-24 text-center text-sm text-[#33ff00]/40 space-y-3 border border-[#1f521f]/20 rounded-3xl bg-[#0c0c0c]/40">
+          <div className="py-12 text-center text-xs text-[#33ff00]/40 space-y-2 border border-[#1f521f]/20 rounded-2xl bg-[#0c0c0c]/40">
             <div>&gt; No repositories found in database.</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {repositories.map((repo) => {
               const isCompleted = repo.status === "COMPLETED";
               const isFailed = repo.status === "FAILED";
