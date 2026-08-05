@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { PiCompassRoseFill } from "react-icons/pi";
 
 export default function Navbar() {
   return (
@@ -10,8 +11,8 @@ export default function Navbar() {
         <div className="w-full px-6 md:px-10 h-16 flex items-center justify-between relative">
           
           {/* START: logo / prompt */}
-          <div className="flex items-center gap-2 font-bold tracking-wider text-lg md:text-xl">
-            <span className="text-[#33ff00]">&gt;</span>
+          <div className="flex items-center gap-4 font-bold tracking-wider text-lg md:text-xl">
+            <span className="text-[#33ff00]"><PiCompassRoseFill size={26}/> </span>
             <Link href="/" className="hover:text-[#ffb000] transition-colors duration-150 uppercase tracking-widest">
               CODE COMPASS
             </Link>
@@ -19,6 +20,12 @@ export default function Navbar() {
 
           {/* MID: navigation links */}
           <div className="hidden md:flex items-center gap-10 text-base absolute left-1/2 -translate-x-1/2">
+            <Link 
+              href="/" 
+              className="px-2 py-0.5 transition-all duration-150 hover:bg-[#33ff00] hover:text-black"
+            >
+              Home
+            </Link>
             <Link 
               href="/dashboard" 
               className="px-2 py-0.5 transition-all duration-150 hover:bg-[#33ff00] hover:text-black"
