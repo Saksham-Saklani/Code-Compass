@@ -2,6 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 
 const Spline = dynamic(() => import("@splinetool/react-spline"), {
   ssr: false,
@@ -89,7 +90,7 @@ export default function Hero() {
 
           {/* Description Pane (with vertical indicator line) */}
           <div className="border-l-2 border-[#33ff00] pl-6 py-1">
-            <p className="text-lg sm:text-xl md:text-2xl text-[#33ff00]/85 leading-relaxed tracking-wide">
+            <p className="text-lg sm:text-xl md:text-2xl text-[#fff]/85 leading-relaxed tracking-wide">
               Stop searching through hundreds of files. Ask questions and get
               AI-powered answers backed by your source code.
             </p>
@@ -98,14 +99,20 @@ export default function Hero() {
           {/* Call to Actions */}
           <div className="flex flex-wrap items-center gap-6 pt-4">
             {/* Solid Neon Button */}
-            <button className="px-12 py-4 bg-[#33ff00] text-black font-bold text-xl hover:bg-transparent hover:text-[#33ff00] border border-[#33ff00] transition-all duration-150 active:translate-y-0.5 cursor-pointer">
+            <Link
+              href="/dashboard"
+              className="inline-block px-12 py-4 bg-[#33ff00] text-black font-bold text-xl hover:bg-transparent hover:text-[#33ff00] border border-[#33ff00] transition-all duration-150 active:translate-y-0.5 cursor-pointer text-center"
+            >
               Get Started
-            </button>
+            </Link>
 
             {/* Dashed Button */}
-            <button className="px-8 py-4 border border-dashed border-[#33ff00] text-xl font-bold hover:bg-neutral-800 transition-all duration-150 active:translate-y-0.5 cursor-pointer">
+            <Link
+              href="/guide"
+              className="inline-block px-8 py-4 border border-dashed border-[#33ff00] text-xl font-bold hover:bg-neutral-800 transition-all duration-150 active:translate-y-0.5 cursor-pointer text-center"
+            >
               [ View Guide ]
-            </button>
+            </Link>
           </div>
         </div>
       </div>
