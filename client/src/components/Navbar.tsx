@@ -46,7 +46,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* END: login button */}
+         {/* END: login button */}
           <div className="flex items-center">
             <button 
               className="relative px-3 py-1.5 border border-dashed border-[#33ff00] text-xs font-bold tracking-widest uppercase hover:bg-[#33ff00] hover:text-black hover:shadow-[0_0_10px_rgba(51,255,0,0.5)] transition-all duration-150 active:translate-y-0.5"
@@ -54,7 +54,7 @@ export default function Navbar() {
             >
               [ LOGIN ]
             </button>
-          </div>
+          </div> 
 
         </div>
       </nav>

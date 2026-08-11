@@ -10,45 +10,58 @@ async function createRepositoryController(req: Request, res: Response) {
     return res
       .status(201)
       .json({ message: "Repository created successfully", repository });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof Error) {
-      if (
-        error.message === "Repository already exists"
-      ) {
-        return res
-          .status(409)
-          .json({ message: "Repository already exists" });
+      if (error.message === "Repository already exists") {
+        return res.status(409).json({ message: "Repository already exists" });
       }
+
+      // Handle Octokit API errors (e.g. 404, 403)
+      if (error.name === "HttpError" || "status" in error) {
+        if (error.status === 404) {
+          return res.status(404).json({
+            message: "GitHub repository not found or is private. Only public repositories are supported.",
+          });
+        }
+        if (error.status === 403) {
+          return res.status(403).json({
+            message: "GitHub API rate limit exceeded or access forbidden.",
+          });
+        }
+      }
+
+      // Return the specific error message (e.g. invalid URL format)
+      return res.status(400).json({ message: error.message });
     }
-    return res.status(500).json({ message: "Repository creation failed", error});
+    return res
+      .status(500)
+      .json({ message: "Repository creation failed due to an unknown error" });
   }
 }
 
-async function indexingController(req: Request,res: Response){
-    try {
-        const {id} = req.params;
-        if (!id || typeof id !== 'string') {
-            return res.status(400).json({ message: "Invalid repository ID" });
-        }
-        const result = await indexingQueue.add('repo-job',{
-          repoId: id,
-        })
-    
-    return res
-        .status(202)
-        .json({ message: "Indexing job added to queue successfully" });
-    } catch (error) {
-        if(error instanceof Error){
-            if(error.message === "Repository not found"){
-                return res
-                    .status(404)
-                    .json({ message: "Repository not found" });
-            }
-        }
-        return res
-            .status(500)
-            .json({ message: "Repository indexing failed", error });
+async function indexingController(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ message: "Invalid repository ID" });
     }
+    const result = await indexingQueue.add("repo-job", {
+      repoId: id,
+    });
+
+    return res
+      .status(202)
+      .json({ message: "Indexing job added to queue successfully" });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "Repository not found") {
+        return res.status(404).json({ message: "Repository not found" });
+      }
+    }
+    return res
+      .status(500)
+      .json({ message: "Repository indexing failed", error });
+  }
 }
 
 async function getRepositoriesController(req: Request, res: Response) {
@@ -63,7 +76,9 @@ async function getRepositoriesController(req: Request, res: Response) {
     });
     return res.status(200).json(repositories);
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch repositories", error });
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch repositories", error });
   }
 }
 
@@ -86,8 +101,15 @@ async function getRepositoryByIdController(req: Request, res: Response) {
     }
     return res.status(200).json(repository);
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch repository", error });
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch repository", error });
   }
 }
 
-export { createRepositoryController, indexingController, getRepositoriesController, getRepositoryByIdController };
+export {
+  createRepositoryController,
+  indexingController,
+  getRepositoriesController,
+  getRepositoryByIdController,
+};

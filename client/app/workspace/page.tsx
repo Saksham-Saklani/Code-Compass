@@ -276,7 +276,6 @@ function WorkspaceContent() {
 
       {/* MAIN SCREEN AREA */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#131314] relative z-10">
-        
         {/* SOFT GREEN RADIAL GLOW IN CENTER */}
         {messages.length === 0 && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0">
@@ -296,7 +295,6 @@ function WorkspaceContent() {
 
         {/* CHAT CONTAINER */}
         <div className="flex-1 overflow-hidden flex flex-col justify-between relative">
-          
           {/* VIEW 1: EMPTY STATE - Header & Input Form centered together */}
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col justify-center items-center px-6 w-full max-w-5xl mx-auto space-y-6 select-none relative z-10">

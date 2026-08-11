@@ -12,13 +12,13 @@ export interface Context {
 }
 
 // send file paths and contents to gemini with user query
-export async function generateAnswer({
+export async function* generateAnswer({
   query,
   chunks,
 }: {
   query: string;
   chunks: Context[];
-}): Promise<string> {
+}) {
   const fileContent = chunks
     .map((chunk) => `File: ${chunk.filePath}\n${chunk.content}`)
     .join("\n---\n");
@@ -39,7 +39,17 @@ export async function generateAnswer({
   const interaction = await client.interactions.create({
     model: "gemini-3-flash-preview",
     input: prompt,
+    stream: true,
   });
 
-  return interaction.output_text ?? "Failed to generate";
+  for await (const event of interaction) {
+    if (event.event_type === "step.delta") {
+      if (event.delta.type === "text") {
+        console.log(event.delta.text);
+        // yield event.delta.text;
+      }
+    }
+  }
+
+  // return interaction.output_text ?? "Failed to generate";
 }

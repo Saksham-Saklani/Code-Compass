@@ -104,7 +104,34 @@ export default function DashboardPage() {
   // Handle adding repository
   const handleAddRepository = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (!repoUrl.trim()) return;
+    const trimmedUrl = repoUrl.trim();
+    if (!trimmedUrl) return;
+
+    // Client-side URL validation matching backend requirements
+    try {
+      const parsedUrl = new URL(trimmedUrl);
+      if (parsedUrl.hostname !== "github.com" && parsedUrl.hostname !== "www.github.com") {
+        setFormMessage({
+          text: "Only GitHub repositories are currently supported.",
+          type: "error",
+        });
+        return;
+      }
+      const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
+      if (pathParts.length !== 2) {
+        setFormMessage({
+          text: "Invalid GitHub URL format. Expected: https://github.com/{owner}/{repo}",
+          type: "error",
+        });
+        return;
+      }
+    } catch (err) {
+      setFormMessage({
+        text: "Please enter a valid URL (e.g. https://github.com/owner/repo).",
+        type: "error",
+      });
+      return;
+    }
 
     setSubmitting(true);
     setFormMessage({ text: "Adding repository to database...", type: "info" });
@@ -112,7 +139,7 @@ export default function DashboardPage() {
     try {
       // 1. Create Repository
       const createRes = await axios.post(`${API_BASE}/api/repository`, {
-        url: repoUrl.trim(),
+        url: trimmedUrl,
       });
 
       const newRepo: Repository = createRes.data.repository;
@@ -140,11 +167,24 @@ export default function DashboardPage() {
       await fetchRepositories();
     } catch (err: any) {
       console.error("Add repository error:", err);
+      
+      // Safely extract string message to prevent React rendering crashes with objects
+      let displayError = "Failed to add repository";
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (typeof data.message === "string") {
+          displayError = data.message;
+        } else if (typeof data.error === "string") {
+          displayError = data.error;
+        } else if (typeof data === "string") {
+          displayError = data;
+        }
+      } else if (err.message) {
+        displayError = err.message;
+      }
+
       setFormMessage({
-        text:
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to add repository",
+        text: displayError,
         type: "error",
       });
     } finally {

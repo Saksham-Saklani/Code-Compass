@@ -19,11 +19,9 @@ async function AIChatController(req: Request, res: Response) {
     }
 
     if (repo.status !== "COMPLETED") {
-      res
-        .status(400)
-        .json({
-          error: "Repository is not indexed yet. Please try again later.",
-        });
+      res.status(400).json({
+        error: "Repository is not indexed yet. Please try again later.",
+      });
       return;
     }
 
