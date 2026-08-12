@@ -205,23 +205,90 @@ function WorkspaceContent() {
       abortControllerRef.current = controller;
 
       try {
-        const response = await axios.post(
-          `${API_BASE}/api/chat/repository/${selectedRepo.id}`,
-          { query: query.trim() },
-          { signal: controller.signal },
-        );
+        const response = await fetch(`${API_BASE}/api/chat/repository/${selectedRepo.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query: query.trim() }),
+          signal: controller.signal,
+        });
 
-        const aiMsg: Message = {
-          id: `ai-${Date.now()}`,
-          role: "assistant",
-          text: response.data.answer,
-          sources: response.data.sources,
-          timestamp: getTimestamp(),
-        };
+        if (!response.ok) {
+          let errMsg = "Failed to fetch response";
+          try {
+            const errData = await response.json();
+            errMsg = errData.error || errMsg;
+          } catch (e) {}
+          throw new Error(errMsg);
+        }
 
-        setMessages((prev) => [...prev, aiMsg]);
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No readable stream");
+
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+
+        const aiMsgId = `ai-${Date.now()}`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: aiMsgId,
+            role: "assistant",
+            text: "",
+            sources: [],
+            timestamp: getTimestamp(),
+          },
+        ]);
+
+        let buffer = "";
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          if (readerDone) {
+            done = true;
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          
+          // Keep the last partial chunk in the buffer
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const dataStr = line.replace("data: ", "");
+              try {
+                const parsed = JSON.parse(dataStr);
+                
+                if (parsed.type === "sources") {
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === aiMsgId
+                        ? { ...msg, sources: parsed.sources }
+                        : msg
+                    )
+                  );
+                } else if (parsed.type === "text") {
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === aiMsgId
+                        ? { ...msg, text: msg.text + parsed.text }
+                        : msg
+                    )
+                  );
+                } else if (parsed.type === "done") {
+                  done = true;
+                }
+              } catch (err) {
+                console.error("Error parsing SSE data:", err);
+              }
+            }
+          }
+        }
       } catch (err: any) {
-        if (axios.isCancel(err)) {
+        if (err.name === 'AbortError' || axios.isCancel(err)) {
           setMessages((prev) => [
             ...prev,
             {
@@ -235,8 +302,7 @@ function WorkspaceContent() {
         }
         console.error("Failed to query assistant:", err);
         setChatError(
-          err.response?.data?.error ||
-            err.message ||
+          err.message ||
             "Network timeout. Unable to fetch response from backend AI.",
         );
       } finally {

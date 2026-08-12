@@ -34,7 +34,19 @@ async function AIChatController(req: Request, res: Response) {
 
     const result = await AIChat(id, query);
 
-    res.status(200).json(result);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    for await (const chunk of result.answer) {
+      res.write(`data: ${JSON.stringify({ type: "text", text: chunk })}\n\n`);
+    }
+
+    res.write(`data: ${JSON.stringify({ type: "sources", sources: result.sources })}\n\n`);
+
+
+    res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
+    res.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to chat with AI" });

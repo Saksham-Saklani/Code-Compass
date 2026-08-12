@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const client = new GoogleGenAI({
+const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
 });
 
@@ -36,20 +36,16 @@ export async function* generateAnswer({
     ${fileContent}
   `;
 
-  const interaction = await client.interactions.create({
+  const response = await ai.models.generateContentStream({
     model: "gemini-3-flash-preview",
-    input: prompt,
-    stream: true,
+    contents: prompt,
   });
 
-  for await (const event of interaction) {
-    if (event.event_type === "step.delta") {
-      if (event.delta.type === "text") {
-        console.log(event.delta.text);
-        // yield event.delta.text;
-      }
+  
+  for await (const part of response) {
+    const partText = part.text || "";
+    if (partText) {
+      yield partText;
     }
   }
-
-  // return interaction.output_text ?? "Failed to generate";
 }
