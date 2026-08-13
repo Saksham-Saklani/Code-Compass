@@ -1,8 +1,6 @@
 import { embedText } from "../lib/embedding.js";
 import prisma from "../lib/prisma.js";
-import { qdrant } from "../lib/qdrant.js";
-
-
+import { qdrant, COLLECTION_NAME } from "../lib/qdrant.js";
 
 // create embeddings of chunks content and save into qdrant collection
 
@@ -30,10 +28,9 @@ export async function saveEmbeddings(repoId: string) {
   }
 
   if (points.length > 0) {
-    await qdrant.upsert("code_compass", {
+    await qdrant.upsert(COLLECTION_NAME, {
       wait: true,
       points,
     });
   }
-  
 }

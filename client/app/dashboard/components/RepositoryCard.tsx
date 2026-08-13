@@ -25,11 +25,13 @@ interface Repository {
 interface RepositoryCardProps {
   repo: Repository;
   progress: number;
+  onRetry?: (repoId: string) => void;
 }
 
 export default function RepositoryCard({
   repo,
   progress,
+  onRetry,
 }: RepositoryCardProps) {
   const isCompleted = repo.status === "COMPLETED";
   const isFailed = repo.status === "FAILED";
@@ -137,6 +139,16 @@ export default function RepositoryCard({
           >
             Chat
           </Link>
+        </div>
+      )}
+      {isFailed && onRetry && (
+        <div className="pt-2">
+          <button
+            onClick={() => onRetry(repo.id)}
+            className="w-full py-2 rounded-xl border border-[#ffb000]/80 text-[#ffb000] hover:bg-[#ffb000] hover:text-black hover:shadow-[0_0_10px_rgba(255,176,0,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
+          >
+            Retry
+          </button>
         </div>
       )}
     </div>

@@ -192,6 +192,20 @@ export default function DashboardPage() {
     }
   };
 
+  const handleRetryRepository = async (repoId: string) => {
+    try {
+      await axios.post(`${API_BASE}/api/repository/index/${repoId}`);
+      setProgressMap((prev) => ({ ...prev, [repoId]: 20 }));
+      await fetchRepositories();
+    } catch (err: any) {
+      console.error("Retry repository error:", err);
+      setFormMessage({
+        text: err.response?.data?.message || "Failed to retry indexing",
+        type: "error",
+      });
+    }
+  };
+
   return (
     <div className="relative flex-1 text-[#33ff00] font-mono pt-28 pb-12 px-6 md:px-12 mx-auto w-full space-y-12 select-none">
       {/* Background Animation & Grid */}
@@ -247,7 +261,7 @@ export default function DashboardPage() {
                 : progressMap[repo.id] || (isFailed ? 0 : 45);
 
               return (
-                <RepositoryCard key={repo.id} repo={repo} progress={progress} />
+                <RepositoryCard key={repo.id} repo={repo} progress={progress} onRetry={handleRetryRepository} />
               );
             })}
           </div>

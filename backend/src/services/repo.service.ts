@@ -8,7 +8,7 @@ import { filterFiles } from "../lib/fileFilter.js";
 import { generateChunks } from "../lib/chunker.js";
 import { embedText } from "../lib/embedding.js";
 import prisma from "../lib/prisma.js";
-import { qdrant } from "../lib/qdrant.js";
+import { qdrant, COLLECTION_NAME } from "../lib/qdrant.js";
 import { generateAnswer } from "../lib/gemini.js";
 import type { Context } from "../lib/gemini.js";
 
@@ -125,11 +125,11 @@ async function retrieveChunks(
   query: string,
   limit: number = 5,
 ) {
-      // 1. Embed the user query
-  const queryVector = await embedText(query);
+  // 1. Embed the user query
+  const queryVector = await embedText(query, true);
 
   // 2. Search Qdrant, filtering by the specific repository
-  const searchResults = await qdrant.search("code_compass", {
+  const searchResults = await qdrant.search(COLLECTION_NAME, {
     vector: queryVector,
     filter: {
       must: [
@@ -144,7 +144,7 @@ async function retrieveChunks(
     limit,
   });
 
-  if(searchResults.length === 0){
+  if (searchResults.length === 0) {
     return [];
   }
 
@@ -169,12 +169,9 @@ async function retrieveChunks(
     };
   });
 
-  console.log(context)
+  console.log(context);
 
   return context;
 }
-
-
-
 
 export { createRepository, saveChunks, retrieveChunks };
