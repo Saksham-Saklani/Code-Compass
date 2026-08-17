@@ -7,7 +7,9 @@ export const qdrant = new QdrantClient({
 });
 
 export const isProduction = process.env.NODE_ENV === "production";
-export const COLLECTION_NAME = isProduction ? "code_compass_gemini" : "code_compass";
+export const COLLECTION_NAME = isProduction
+  ? "code_compass_gemini"
+  : "code_compass";
 const VECTOR_SIZE = isProduction ? 1536 : 1024;
 
 // Setup logic running directly
@@ -21,7 +23,9 @@ if (!exists) {
       distance: "Cosine",
     },
   });
-  console.log(`[Qdrant] Created collection: ${COLLECTION_NAME} with size ${VECTOR_SIZE}`);
+  console.log(
+    `[Qdrant] Created collection: ${COLLECTION_NAME} with size ${VECTOR_SIZE}`,
+  );
 } else {
   console.log(`[Qdrant] Collection '${COLLECTION_NAME}' already exists.`);
 }

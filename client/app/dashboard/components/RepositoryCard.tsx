@@ -7,6 +7,7 @@ import { IoCheckmarkCircleSharp } from "react-icons/io5";
 import { RxCrossCircled } from "react-icons/rx";
 import { FaHourglassStart, FaGear } from "react-icons/fa6";
 import { PiFileCodeFill } from "react-icons/pi";
+import { MdDelete } from "react-icons/md";
 
 interface Repository {
   id: string;
@@ -26,12 +27,14 @@ interface RepositoryCardProps {
   repo: Repository;
   progress: number;
   onRetry?: (repoId: string) => void;
+  onDelete?: (repoId: string) => void;
 }
 
 export default function RepositoryCard({
   repo,
   progress,
   onRetry,
+  onDelete,
 }: RepositoryCardProps) {
   const isCompleted = repo.status === "COMPLETED";
   const isFailed = repo.status === "FAILED";
@@ -131,26 +134,33 @@ export default function RepositoryCard({
       )}
 
       {/* Card Action Button */}
-      {isCompleted && (
-        <div className="pt-2">
+      <div className="pt-2 flex gap-2">
+        {isCompleted && (
           <Link
             href={`/workspace?repoId=${repo.id}`}
-            className="w-full py-2 rounded-xl border border-[#33ff00]/80 text-[#33ff00] hover:bg-[#33ff00] hover:text-black hover:shadow-[0_0_10px_rgba(51,255,0,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
+            className="flex-1 py-2 rounded-xl border border-[#33ff00]/80 text-[#33ff00] hover:bg-[#33ff00] hover:text-black hover:shadow-[0_0_10px_rgba(51,255,0,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
           >
             Chat
           </Link>
-        </div>
-      )}
-      {isFailed && onRetry && (
-        <div className="pt-2">
+        )}
+        {isFailed && onRetry && (
           <button
             onClick={() => onRetry(repo.id)}
-            className="w-full py-2 rounded-xl border border-[#ffb000]/80 text-[#ffb000] hover:bg-[#ffb000] hover:text-black hover:shadow-[0_0_10px_rgba(255,176,0,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
+            className="flex-1 py-2 rounded-xl border border-[#ffb000]/80 text-[#ffb000] hover:bg-[#ffb000] hover:text-black hover:shadow-[0_0_10px_rgba(255,176,0,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
           >
             Retry
           </button>
-        </div>
-      )}
+        )}
+        {onDelete && (
+          <button
+            onClick={() => onDelete(repo.id)}
+            className="px-4 py-2 rounded-xl border border-red-500/80 text-red-500 hover:bg-red-500 hover:text-black hover:shadow-[0_0_10px_rgba(239,68,68,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
+            title="Delete Repository"
+          >
+            <MdDelete size={20}/>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

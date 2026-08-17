@@ -206,6 +206,24 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteRepository = async (repoId: string) => {
+    if (!window.confirm("Are you sure you want to delete this repository?")) return;
+    try {
+      await axios.delete(`${API_BASE}/api/repository/${repoId}`);
+      setRepositories((prev) => prev.filter((r) => r.id !== repoId));
+      setFormMessage({
+        text: "Repository deleted successfully.",
+        type: "success",
+      });
+    } catch (err: any) {
+      console.error("Delete repository error:", err);
+      setFormMessage({
+        text: err.response?.data?.message || "Failed to delete repository",
+        type: "error",
+      });
+    }
+  };
+
   return (
     <div className="relative flex-1 text-[#33ff00] font-mono pt-28 pb-12 px-6 md:px-12 mx-auto w-full space-y-12 select-none">
       {/* Background Animation & Grid */}
@@ -261,7 +279,13 @@ export default function DashboardPage() {
                 : progressMap[repo.id] || (isFailed ? 0 : 45);
 
               return (
-                <RepositoryCard key={repo.id} repo={repo} progress={progress} onRetry={handleRetryRepository} />
+                <RepositoryCard
+                  key={repo.id}
+                  repo={repo}
+                  progress={progress}
+                  onRetry={handleRetryRepository}
+                  onDelete={handleDeleteRepository}
+                />
               );
             })}
           </div>

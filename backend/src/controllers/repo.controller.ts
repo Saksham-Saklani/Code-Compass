@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createRepository, saveChunks } from "../services/repo.service.js";
+import { createRepository, saveChunks, deleteRepository } from "../services/repo.service.js";
 import prisma from "../lib/prisma.js";
 import { indexingQueue } from "../queue/indexing.queue.js";
 
@@ -107,9 +107,31 @@ async function getRepositoryByIdController(req: Request, res: Response) {
   }
 }
 
+async function deleteRepositoryController(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ message: "Invalid repository ID" });
+    }
+    
+    // Check if repository exists
+    const repository = await prisma.repository.findUnique({ where: { id } });
+    if (!repository) {
+      return res.status(404).json({ message: "Repository not found" });
+    }
+
+    await deleteRepository(id);
+    return res.status(200).json({ message: "Repository deleted successfully" });
+  } catch (error) {
+    console.error("Delete repo error:", error);
+    return res.status(500).json({ message: "Failed to delete repository", error });
+  }
+}
+
 export {
   createRepositoryController,
   indexingController,
   getRepositoriesController,
   getRepositoryByIdController,
+  deleteRepositoryController,
 };

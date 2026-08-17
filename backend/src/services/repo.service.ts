@@ -174,4 +174,31 @@ async function retrieveChunks(
   return context;
 }
 
-export { createRepository, saveChunks, retrieveChunks };
+async function deleteRepository(repoId: string) {
+  try {
+    await qdrant.delete(COLLECTION_NAME, {
+      filter: {
+        must: [
+          {
+            key: "repoId",
+            match: {
+              value: repoId,
+            },
+          },
+        ],
+      },
+    });
+  } catch (error) {
+    console.error(`Failed to delete Qdrant points for repo ${repoId}:`, error);
+  }
+
+  await prisma.chunk.deleteMany({
+    where: { repoId },
+  });
+
+  await prisma.repository.delete({
+    where: { id: repoId },
+  });
+}
+
+export { createRepository, saveChunks, retrieveChunks, deleteRepository };
