@@ -2,7 +2,9 @@
 import { URL } from "url";
 import { Octokit} from "@octokit/core"
 
-const octokit = new Octokit()
+const octokit = new Octokit({
+    auth: process.env.GITHUB_PAT
+})
 
 interface RepoInfo{
     owner: string,
