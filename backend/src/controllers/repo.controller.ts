@@ -18,12 +18,13 @@ async function createRepositoryController(req: Request, res: Response) {
 
       // Handle Octokit API errors (e.g. 404, 403)
       if (error.name === "HttpError" || "status" in error) {
-        if (error.status === 404) {
+        const httpError = error as Error & { status: number };
+        if (httpError.status === 404) {
           return res.status(404).json({
             message: "GitHub repository not found or is private. Only public repositories are supported.",
           });
         }
-        if (error.status === 403) {
+        if (httpError.status === 403) {
           return res.status(403).json({
             message: "GitHub API rate limit exceeded or access forbidden.",
           });

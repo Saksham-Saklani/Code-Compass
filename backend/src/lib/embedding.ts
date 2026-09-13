@@ -8,9 +8,9 @@ const isProduction = process.env.NODE_ENV === "production";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function embedText(
-  text: string,
+  text: string | string[],
   isQuery = false,
-): Promise<number[] > {
+): Promise<number[] | number[][]> {
   if (isProduction) {
     const response = await ai.models.embedContent({
       model: "gemini-embedding-001",
@@ -25,12 +25,10 @@ export async function embedText(
       throw new Error("Failed to generate embedding from Gemini");
     }
 
-    const embedding = response.embeddings[0];
-    if (!embedding || !embedding.values) {
-      throw new Error("Failed to generate embedding from Gemini: values missing");
-    }
-
-    return embedding.values;
+    return response.embeddings.map((e) => {
+      if(!e.values) throw new Error("Failed to generate embedding from Gemini: values missing");
+      return e.values;
+    });
   } else {
     const response = await ollama.embed({
       model: "qwen3-embedding:0.6b",
@@ -41,11 +39,7 @@ export async function embedText(
       throw new Error("Failed to generate embedding from Ollama");
     }
 
-    const embedding = response.embeddings[0];
-    if (!embedding) {
-      throw new Error("Failed to generate embedding from Ollama: values missing");
-    }
-    return embedding;
+    return response.embeddings
   }
 }
 

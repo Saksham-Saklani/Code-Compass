@@ -126,7 +126,7 @@ async function retrieveChunks(
   limit: number = 5,
 ) {
   // 1. Embed the user query
-  const queryVector = await embedText(query, true);
+  const queryVector = (await embedText(query, true)) as number[];
 
   // 2. Search Qdrant, filtering by the specific repository
   const searchResults = await qdrant.search(COLLECTION_NAME, {

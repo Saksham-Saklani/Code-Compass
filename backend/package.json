@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "test": "tsx test-github.ts"
+    "test": "tsx test-github.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",

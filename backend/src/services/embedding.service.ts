@@ -4,6 +4,8 @@ import { qdrant, COLLECTION_NAME } from "../lib/qdrant.js";
 
 // create embeddings of chunks content and save into qdrant collection
 
+const BATCH_SIZE = 50;
+
 export async function saveEmbeddings(repoId: string) {
   const chunks = await prisma.chunk.findMany({
     where: {

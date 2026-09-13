@@ -4,6 +4,9 @@ dotenv.config();
 
 export const qdrant = new QdrantClient({
   url: process.env.QDRANT_URL!,
+  apiKey: process.env.QDRANT_API_KEY!,
+  port: 6333,
+  https: true,
 });
 
 export const isProduction = process.env.NODE_ENV === "production";
