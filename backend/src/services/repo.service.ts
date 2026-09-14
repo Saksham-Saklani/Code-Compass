@@ -114,7 +114,13 @@ async function saveChunks(repoId: string) {
     })),
   });
 
-  console.log(`Successfully saved ${result.count} chunks for repo ${repoId}`);
+  // Save filtered file count on repository
+  await prisma.repository.update({
+    where: { id: repoId },
+    data: { fileCount: filteredTree.length },
+  });
+
+  console.log(`Successfully saved ${result.count} chunks (${filteredTree.length} files) for repo ${repoId}`);
 
   return result;
 }

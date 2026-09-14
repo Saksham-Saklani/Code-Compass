@@ -15,6 +15,7 @@ interface Repository {
   owner: string;
   name: string;
   defaultBranch: string;
+  fileCount?: number;
   status: "PENDING" | "INDEXING" | "COMPLETED" | "FAILED";
   createdAt: string;
   updatedAt: string;
@@ -41,14 +42,17 @@ export default function RepositoryCard({
   const isIndexing = repo.status === "INDEXING";
   const isPending = repo.status === "PENDING";
 
-  const fileCount = repo._count?.chunks ?? 0;
+  const fileCount = repo.fileCount ?? repo._count?.chunks ?? 0;
 
   return (
     <div className="border mt-4 border-white/5 bg-[#141414] hover:bg-[#181818] rounded-2xl p-5 flex flex-col justify-between min-h-[240px] hover:border-[#33ff00]/40 shadow-[0_8px_24px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_28px_rgba(51,255,0,0.05),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all duration-300 transform hover:-translate-y-0.5">
       {/* Card Header */}
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3 mb-2">
-          <h3 className="font-bold text-lg text-[#33ff00] uppercase tracking-wide truncate" title={repo.name}>
+          <h3
+            className="font-bold text-lg text-[#33ff00] uppercase tracking-wide truncate"
+            title={repo.name}
+          >
             {repo.name}
           </h3>
           <span
@@ -157,7 +161,7 @@ export default function RepositoryCard({
             className="px-4 py-2 rounded-xl border border-red-500/80 text-red-500 hover:bg-red-500 hover:text-black hover:shadow-[0_0_10px_rgba(239,68,68,0.3)] font-bold text-xs text-center block transition-all duration-300 uppercase tracking-wider"
             title="Delete Repository"
           >
-            <MdDelete size={20}/>
+            <MdDelete size={20} />
           </button>
         )}
       </div>

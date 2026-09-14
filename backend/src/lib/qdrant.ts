@@ -32,3 +32,13 @@ if (!exists) {
 } else {
   console.log(`[Qdrant] Collection '${COLLECTION_NAME}' already exists.`);
 }
+
+// Ensure payload index on 'repoId' exists for filtering/deletion
+try {
+  await qdrant.createPayloadIndex(COLLECTION_NAME, {
+    field_name: "repoId",
+    field_schema: "keyword",
+  });
+} catch (e) {
+  // Index might already exist
+}

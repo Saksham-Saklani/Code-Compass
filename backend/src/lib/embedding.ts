@@ -25,10 +25,15 @@ export async function embedText(
       throw new Error("Failed to generate embedding from Gemini");
     }
 
-    return response.embeddings.map((e) => {
-      if(!e.values) throw new Error("Failed to generate embedding from Gemini: values missing");
+    const vectors = response.embeddings.map((e) => {
+      if (!e.values)
+        throw new Error(
+          "Failed to generate embedding from Gemini: values missing",
+        );
       return e.values;
     });
+
+    return Array.isArray(text) ? vectors : (vectors[0] as number[]);
   } else {
     const response = await ollama.embed({
       model: "qwen3-embedding:0.6b",
@@ -39,7 +44,6 @@ export async function embedText(
       throw new Error("Failed to generate embedding from Ollama");
     }
 
-    return response.embeddings
+    return response.embeddings;
   }
 }
-

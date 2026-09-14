@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { createRepository, saveChunks, deleteRepository } from "../services/repo.service.js";
+import {
+  createRepository,
+  saveChunks,
+  deleteRepository,
+} from "../services/repo.service.js";
 import prisma from "../lib/prisma.js";
 import { indexingQueue } from "../queue/indexing.queue.js";
 
@@ -21,7 +25,8 @@ async function createRepositoryController(req: Request, res: Response) {
         const httpError = error as Error & { status: number };
         if (httpError.status === 404) {
           return res.status(404).json({
-            message: "GitHub repository not found or is private. Only public repositories are supported.",
+            message:
+              "GitHub repository not found or is private. Only public repositories are supported.",
           });
         }
         if (httpError.status === 403) {
@@ -114,7 +119,7 @@ async function deleteRepositoryController(req: Request, res: Response) {
     if (!id || typeof id !== "string") {
       return res.status(400).json({ message: "Invalid repository ID" });
     }
-    
+
     // Check if repository exists
     const repository = await prisma.repository.findUnique({ where: { id } });
     if (!repository) {
@@ -125,7 +130,9 @@ async function deleteRepositoryController(req: Request, res: Response) {
     return res.status(200).json({ message: "Repository deleted successfully" });
   } catch (error) {
     console.error("Delete repo error:", error);
-    return res.status(500).json({ message: "Failed to delete repository", error });
+    return res
+      .status(500)
+      .json({ message: "Failed to delete repository", error });
   }
 }
 

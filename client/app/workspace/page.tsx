@@ -22,6 +22,7 @@ interface Repository {
   owner: string;
   name: string;
   defaultBranch: string;
+  fileCount?: number;
   status: "PENDING" | "INDEXING" | "COMPLETED" | "FAILED";
   createdAt: string;
   updatedAt: string;
@@ -205,14 +206,17 @@ function WorkspaceContent() {
       abortControllerRef.current = controller;
 
       try {
-        const response = await fetch(`${API_BASE}/api/chat/repository/${selectedRepo.id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${API_BASE}/api/chat/repository/${selectedRepo.id}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ query: query.trim() }),
+            signal: controller.signal,
           },
-          body: JSON.stringify({ query: query.trim() }),
-          signal: controller.signal,
-        });
+        );
 
         if (!response.ok) {
           let errMsg = "Failed to fetch response";
@@ -252,7 +256,7 @@ function WorkspaceContent() {
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split("\n\n");
-          
+
           // Keep the last partial chunk in the buffer
           buffer = lines.pop() || "";
 
@@ -261,22 +265,22 @@ function WorkspaceContent() {
               const dataStr = line.replace("data: ", "");
               try {
                 const parsed = JSON.parse(dataStr);
-                
+
                 if (parsed.type === "sources") {
                   setMessages((prev) =>
                     prev.map((msg) =>
                       msg.id === aiMsgId
                         ? { ...msg, sources: parsed.sources }
-                        : msg
-                    )
+                        : msg,
+                    ),
                   );
                 } else if (parsed.type === "text") {
                   setMessages((prev) =>
                     prev.map((msg) =>
                       msg.id === aiMsgId
                         ? { ...msg, text: msg.text + parsed.text }
-                        : msg
-                    )
+                        : msg,
+                    ),
                   );
                 } else if (parsed.type === "done") {
                   done = true;
@@ -288,7 +292,7 @@ function WorkspaceContent() {
           }
         }
       } catch (err: any) {
-        if (err.name === 'AbortError' || axios.isCancel(err)) {
+        if (err.name === "AbortError" || axios.isCancel(err)) {
           setMessages((prev) => [
             ...prev,
             {

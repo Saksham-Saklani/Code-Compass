@@ -12,6 +12,7 @@ interface Repository {
   owner: string;
   name: string;
   defaultBranch: string;
+  fileCount?: number;
   status: "PENDING" | "INDEXING" | "COMPLETED" | "FAILED";
   createdAt: string;
   updatedAt: string;
@@ -110,7 +111,10 @@ export default function DashboardPage() {
     // Client-side URL validation matching backend requirements
     try {
       const parsedUrl = new URL(trimmedUrl);
-      if (parsedUrl.hostname !== "github.com" && parsedUrl.hostname !== "www.github.com") {
+      if (
+        parsedUrl.hostname !== "github.com" &&
+        parsedUrl.hostname !== "www.github.com"
+      ) {
         setFormMessage({
           text: "Only GitHub repositories are currently supported.",
           type: "error",
@@ -167,7 +171,7 @@ export default function DashboardPage() {
       await fetchRepositories();
     } catch (err: any) {
       console.error("Add repository error:", err);
-      
+
       // Safely extract string message to prevent React rendering crashes with objects
       let displayError = "Failed to add repository";
       if (err.response?.data) {
@@ -207,7 +211,8 @@ export default function DashboardPage() {
   };
 
   const handleDeleteRepository = async (repoId: string) => {
-    if (!window.confirm("Are you sure you want to delete this repository?")) return;
+    if (!window.confirm("Are you sure you want to delete this repository?"))
+      return;
     try {
       await axios.delete(`${API_BASE}/api/repository/${repoId}`);
       setRepositories((prev) => prev.filter((r) => r.id !== repoId));

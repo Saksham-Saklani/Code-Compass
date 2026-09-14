@@ -26,6 +26,7 @@ model Repository{
   owner         String
   name          String
   defaultBranch String
+  fileCount     Int              @default(0)
   status        RepositoryStatus @default(PENDING)
   
   createdAt     DateTime         @default(now())
